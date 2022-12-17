@@ -31,12 +31,12 @@ public class Basket implements Serializable {
         return totalCost;
     }
 
-    //добавление товаров в корзину:
+    
     protected void addToCart(int productNum, int quantity) {
         purchases[productNum] += quantity;
     }
 
-    //вывод корзины на экран:
+
     protected void printCart() {
         for (int i = 0; i < products.length; i++) {
             if (purchases[i] > 0) {
@@ -48,7 +48,7 @@ public class Basket implements Serializable {
         System.out.print("Общая стоимость: " + totalCost + " руб.\n");
     }
 
-    //сериализация:
+
     protected void saveBin(File file, Basket b01) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(b01);
@@ -57,7 +57,7 @@ public class Basket implements Serializable {
         }
     }
 
-    
+
     protected static void loadFromBinFile(File file) {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             Basket b01 = (Basket) ois.readObject();
