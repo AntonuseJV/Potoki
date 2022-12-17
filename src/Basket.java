@@ -1,58 +1,81 @@
 import java.io.*;
+import java.util.Arrays;
 
 public class Basket implements Serializable {
+    private final long serialVersionUID = 1L;
+    protected int[] prices;
+    protected String[] products;
+    protected int[] purchases;
+    protected int totalCost = 0;
 
-    private static final long serialVersionUID = 1L;
 
-    protected String[][] productsList; // двумерный массив-список товаров с ценами, доступных к покупке
-    protected int[] itemsInCart; // массив количества каждого товара в корзине
-    protected int bill = 0;
-
-
-    public Basket(String[][] productsList) {
-        this.productsList = productsList;
-        this.itemsInCart = new int[productsList.length];
+    protected Basket(int[] prices, String[] products) {
+        this.prices = prices;
+        this.products = products;
+        this.purchases = new int[products.length];
     }
 
-    public void addToCart(int productNum, int amount) {
-        itemsInCart[productNum] += amount;
-        bill += Integer.parseInt(productsList[productNum][1]) * amount;
+    public int[] getPrices() {
+        return prices;
     }
 
-    public void printCart() {
-        System.out.println("Ваша корзина покупок:");
-        for (int i = 0; i < itemsInCart.length; i++) {
-            if (itemsInCart[i] != 0) {
-                System.out.println(productsList[i][0] + ", " + productsList[i][1] + " руб/шт: "
-                        + itemsInCart[i] + " шт, " + (Integer.parseInt(productsList[i][1]) * itemsInCart[i]) + " руб");
+    public String[] getProducts() {
+        return products;
+    }
+
+    public int[] getPurchases() {
+        return purchases;
+    }
+
+    public int getTotalCost() {
+        return totalCost;
+    }
+
+    //добавление товаров в корзину:
+    protected void addToCart(int productNum, int quantity) {
+        purchases[productNum] += quantity;
+    }
+
+    //вывод корзины на экран:
+    protected void printCart() {
+        for (int i = 0; i < products.length; i++) {
+            if (purchases[i] > 0) {
+                System.out.println(products[i] + " по " + prices[i] + " руб. - "
+                        + purchases[i] + " шт. (на " + (purchases[i] * prices[i]) + " руб.)");
+                totalCost += (purchases[i] * prices[i]);
             }
         }
-        System.out.println("Общая стоимость: " + bill);
+        System.out.print("Общая стоимость: " + totalCost + " руб.\n");
     }
 
-    public void saveBin(File file) {
-        try (FileOutputStream outputStream = new FileOutputStream(file);
-             ObjectOutputStream objOutStream = new ObjectOutputStream(outputStream)) {
-            objOutStream.writeObject(this);
-        } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage());
+    //сериализация:
+    protected void saveBin(File file, Basket b01) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(b01);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    public static Basket loadFromBinFile(File file) {
-        Basket basket = null;
-        try (FileInputStream inputStream = new FileInputStream(file);
-             ObjectInputStream objInpStream = new ObjectInputStream(inputStream)) {
-            basket = (Basket) objInpStream.readObject();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+    
+    protected static void loadFromBinFile(File file) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            Basket b01 = (Basket) ois.readObject();
+            System.out.println(b01);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return basket;
+    }
+
+    @Override
+    public String toString() {
+        return "В вашей корзине: \n" +
+                "продукты: " + Arrays.toString(getProducts()) + "\n" +
+                "количество: " + Arrays.toString(getPurchases()) + "\n" +
+                "цены: " + Arrays.toString(getPrices()) + "\n" +
+                "общая стоимость: " + getTotalCost();
     }
 }
+

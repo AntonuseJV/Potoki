@@ -1,63 +1,46 @@
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
+
 public class Main {
-    final static String[][] PRODUCTS = {{"Молоко", "100"}, {"Крупа", "50"}, {"Чай", "80"}, {"Сахар", "60"}};
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
-        Basket basket = new Basket(PRODUCTS);
-        File basketBin = new File("basket.bin");
-        if (basketBin.exists()) {
-            basket = Basket.loadFromBinFile(basketBin);
-            basket.printCart();
-        } else System.out.println("Файл корзины не найден, будет формироваться новая");
-        System.out.println();
-        while (true) {
-            printList();
-            System.out.println("Выберите номер продукта из списка и количество через пробел. " +
-                    "Для завершения программы и вывода итогов введите end:");
-            String choice = scanner.nextLine();
+        String[] products = {"Молоко", "Крупа", "Чай", "Сахар"};
+        int[] prices = {100, 50, 80, 60};
+        Basket b01 = new Basket(prices, products);
+        File file = new File("basket.bin");
 
-            if (choice.equals("end")) {
-                break;
+
+        if (file.exists()) {  // проверяем наличие файла с данными
+            System.out.println("Восстанавливаю корзину (данными из файла)");
+            Basket.loadFromBinFile(file);
+        } else {
+            System.out.println("Файл с данными не найден, заполните корзину в ручную.");
+            System.out.println("Список товаров, доступных к покупке:");
+            for (int i = 0; i < products.length; i++) {
+                System.out.println((i + 1) + "\t" + products[i] + " - " +
+                        prices[i] + " руб.");
+            }
+            while (true) {
+                System.out.println("Веди номер товара и его количество (через пробел); " +
+                        "для подсчета результатов и выхода набери end.");
+                String input = scanner.nextLine();
+                if ("end".equals(input)) {
+                    break;
+                }
+                String[] choice = input.split(" ");
+                int cellNum = Integer.parseInt(choice[0]) - 1;
+                int quantity = Integer.parseInt(choice[1]);
+                b01.addToCart(cellNum, quantity);
             }
 
-            String parts[] = choice.split(" "); // создаем массив из номера товара и количества
-            if (parts.length != 2) {
-                System.out.println("Некорректный ввод! Нужно ввести два числа!");
-                continue;
-            }
-            int productNumber;
-            int productCount;
-            try {
-                productNumber = Integer.parseInt(parts[0]) - 1; //порядковый номер продукта в массиве,
-                productCount = Integer.parseInt(parts[1]); // количество единиц данного продукта
-            } catch (NumberFormatException e) {
-                System.out.println("Вы ввели что-то совсем непонятное");
-                continue;
-            }
-            if (productNumber < 0 || productNumber >= PRODUCTS.length) {
-                System.out.println("Выберите порядковый номер в соответствии с представленным списком");
-                continue;
-            } else if (productCount < 0) {
-                System.out.println("Мы не можем положить в корзину отрицательное количество товара");
-                continue;
-            } else if (productCount == 0) {
-                System.out.println("Вы ничего не положили в корзину");
-                continue;
-            }
-            System.out.println("Вы положили в корзину: " + PRODUCTS[productNumber][0] + ", " + productCount + " шт");
-            basket.addToCart(productNumber, productCount);
-            basket.saveBin(basketBin);
+            System.out.println("В вашей корзине: ");
+            b01.printCart();
         }
-        basket.printCart();
-    }
 
-    static void printList() {
-        System.out.println("Наименование товара, цена\n");
-        for (int i = 0; i < PRODUCTS.length; i++) {
-            System.out.println(PRODUCTS[i][0] + ", " + PRODUCTS[i][1] + " руб/шт");
-        }
+        b01.saveBin(file, b01);
+        System.out.println("Данные вашей корзины сохранены в файл: basket.bin");
     }
 }
