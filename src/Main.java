@@ -5,42 +5,56 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
-        Scanner scanner = new Scanner(System.in);
-        String[] products = {"Молоко", "Крупа", "Чай", "Сахар"};
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         int[] prices = {100, 50, 80, 60};
-        Basket b01 = new Basket(prices, products);
-        File file = new File("basket.bin");
+        String[] products = {"Молоко", "Крупа", "Чай","Сахар"};
 
+        Scanner scanner = new Scanner(System.in);
+        File binFile = new File("basket.bin");
+        Basket basket = new Basket(prices, products);
 
-        if (file.exists()) {  // проверяем наличие файла с данными
-            System.out.println("Восстанавливаю корзину (данными из файла)");
-            Basket.loadFromBinFile(file);
-        } else {
-            System.out.println("Файл с данными не найден, заполните корзину в ручную.");
-            System.out.println("Список товаров, доступных к покупке:");
-            for (int i = 0; i < products.length; i++) {
-                System.out.println((i + 1) + "\t" + products[i] + " - " +
-                        prices[i] + " руб.");
-            }
-            while (true) {
-                System.out.println("Веди номер товара и его количество (через пробел); " +
-                        "для подсчета результатов и выхода набери end.");
-                String input = scanner.nextLine();
-                if ("end".equals(input)) {
-                    break;
-                }
-                String[] choice = input.split(" ");
-                int cellNum = Integer.parseInt(choice[0]) - 1;
-                int quantity = Integer.parseInt(choice[1]);
-                b01.addToCart(cellNum, quantity);
-            }
-
-            System.out.println("В вашей корзине: ");
-            b01.printCart();
+        if (binFile.exists()) {
+            basket = Basket.loadFromBinFile(binFile);
         }
+        basket.printListAllProductsForBuy();
 
-        b01.saveBin(file, b01);
-        System.out.println("Данные вашей корзины сохранены в файл: basket.bin");
+        while (true) {
+            System.out.println("Выберите товар и количество или введите \"end\" ");
+            String input = scanner.nextLine();
+            if (input.equalsIgnoreCase("end")) {
+                break;
+            }
+            String[] parts = input.split(" ");
+            if (parts.length != 2) {
+                continue;
+            }
+
+            int productNumber;
+            try {
+                productNumber = Integer.parseInt(parts[0]) - 1; // выбор продукта
+            } catch (NumberFormatException e) {
+                System.out.println("Вы ввели текст заместо числа. Попробуйте снова!");
+                continue;
+            }
+            if (productNumber >= 3 || productNumber < 0) {
+                System.out.println("Вы ввели некорректное число продукта. Попробуйте снова!");
+                continue;
+            }
+
+            int productCount;
+            try {
+                productCount = Integer.parseInt(parts[1]); // выбор количества продуктов
+            } catch (NumberFormatException e) {
+                System.out.println("Вы ввели текст заместо числа. Попробуйте снова!");
+                continue;
+            }
+            if (productCount > 50 || productCount <= 0) {
+                System.out.println("Вы ввели некорректное кол-во продукта. Попробуйте снова!");
+                continue;
+            }
+            basket.addToCart(productNumber, productCount);
+        }
+        basket.saveBin(binFile);
+        basket.printCart();
     }
 }
